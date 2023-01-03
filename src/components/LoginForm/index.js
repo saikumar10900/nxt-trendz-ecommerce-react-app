@@ -30,11 +30,32 @@ class LoginForm extends Component {
   }
 
   onSubmitFailure = errorMsg => {
-    this.setState({showSubmitError: true, errorMsg})
+    this.setState({showSubmitError: true, errorMsg, username: '', password: ''})
   }
 
   submitForm = async event => {
     event.preventDefault()
+    const {username, password} = this.state
+    if (username === '' || password === '') {
+      this.onSubmitFailure('username or password cannot be empty')
+    } else {
+      const userDetails = {username, password}
+      const url = 'https://apis.ccbp.in/login'
+      const options = {
+        method: 'POST',
+        body: JSON.stringify(userDetails),
+      }
+      const response = await fetch(url, options)
+      const data = await response.json()
+      if (response.ok === true) {
+        this.onSubmitSuccess(data.jwt_token)
+      } else {
+        this.onSubmitFailure(data.error_msg)
+      }
+    }
+  }
+
+  loginAsGuest = async () => {
     const username = 'rahul'
     const password = 'rahul@2021'
     const userDetails = {username, password}
@@ -45,11 +66,8 @@ class LoginForm extends Component {
     }
     const response = await fetch(url, options)
     const data = await response.json()
-    if (response.ok === true) {
-      this.onSubmitSuccess(data.jwt_token)
-    } else {
-      this.onSubmitFailure(data.error_msg)
-    }
+
+    this.onSubmitSuccess(data.jwt_token)
   }
 
   renderPasswordField = () => {
@@ -123,10 +141,19 @@ class LoginForm extends Component {
           <button type="submit" className="login-button">
             Login
           </button>
-          <button type="submit" className="login-button">
+          <button
+            type="button"
+            className="login-button"
+            onClick={this.loginAsGuest}
+          >
             Login as GUEST
           </button>
           {showSubmitError && <p className="error-message">*{errorMsg}</p>}
+          <p style={{fontSize: '13px'}}>
+            *You can directly login as GUEST or use below credentials.
+            <br /> Username: rahul
+            <br /> Password: rahul@2021
+          </p>
         </form>
       </div>
     )
